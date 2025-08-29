@@ -765,7 +765,8 @@ TEST_F(CheckRequestUtilsTest, CheckAttrContextPeerTLSSessionWithoutSNI) {
   callHttpCheckAndValidateRequestAttributes(false, &want_tls_session);
 }
 
-// Test that peer metadata headers are not included in protobuf payload (they're on the wire instead)
+// Test that peer metadata headers are not included in protobuf payload (they're on the wire
+// instead)
 TEST_F(CheckRequestUtilsTest, PeerMetadataHeadersNotInProtobuf) {
   Http::TestRequestHeaderMapImpl request_headers{{"x-envoy-downstream-service-cluster", "foo"},
                                                  {":path", "/bar"}};

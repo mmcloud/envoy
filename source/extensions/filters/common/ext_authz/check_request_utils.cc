@@ -16,11 +16,11 @@
 #include "source/common/common/base64.h"
 #include "source/common/common/empty_string.h"
 #include "source/common/common/enum_to_int.h"
+#include "source/common/common/matchers.h"
 #include "source/common/grpc/async_client_impl.h"
 #include "source/common/http/codes.h"
 #include "source/common/http/headers.h"
 #include "source/common/http/utility.h"
-#include "source/common/common/matchers.h"
 #include "source/common/network/utility.h"
 #include "source/common/protobuf/message_validator_impl.h"
 #include "source/common/protobuf/protobuf.h"
@@ -379,7 +379,7 @@ CheckRequestUtils::computePeerMetadataHeaders(const StreamInfo::StreamInfo& stre
     (*metadata_struct.mutable_fields())["PRINCIPAL"].set_string_value(principal);
   }
 
-  std::string serialized = metadata_struct.SerializeAsString();
+  std::string serialized = std::to_string(MessageUtil::hash(metadata_struct));
 
   // Add size cap to prevent header bloat
   constexpr size_t kMaxMetadataSize = 8192; // 8KB limit
@@ -391,7 +391,7 @@ CheckRequestUtils::computePeerMetadataHeaders(const StreamInfo::StreamInfo& stre
     if (!principal.empty()) {
       (*truncated_struct.mutable_fields())["PRINCIPAL"].set_string_value(principal);
     }
-    serialized = truncated_struct.SerializeAsString();
+    serialized = std::to_string(MessageUtil::hash(truncated_struct));
   }
 
   const std::string b64 = Envoy::Base64::encode(serialized.c_str(), serialized.size());

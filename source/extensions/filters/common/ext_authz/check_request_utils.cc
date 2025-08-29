@@ -363,7 +363,7 @@ CheckRequestUtils::computePeerMetadataHeaders(const StreamInfo::StreamInfo& stre
 
   // Create metadata as base64-encoded protobuf Struct
   // Prefer full node metadata; fall back to minimal if empty
-  ProtobufWkt::Struct metadata_struct;
+  Protobuf::Struct metadata_struct;
   if (local_info.node().has_metadata()) {
     // Use the full node metadata if available
     metadata_struct = local_info.node().metadata();
@@ -379,19 +379,19 @@ CheckRequestUtils::computePeerMetadataHeaders(const StreamInfo::StreamInfo& stre
     (*metadata_struct.mutable_fields())["PRINCIPAL"].set_string_value(principal);
   }
 
-  std::string serialized = MessageUtil::hash(metadata_struct);
+  std::string serialized = metadata_struct.SerializeAsString();
 
   // Add size cap to prevent header bloat
   constexpr size_t kMaxMetadataSize = 8192; // 8KB limit
   if (serialized.size() > kMaxMetadataSize) {
     ENVOY_LOG_MISC(warn, "Peer metadata size {} exceeds limit {}, truncating", serialized.size(),
                    kMaxMetadataSize);
-    ProtobufWkt::Struct truncated_struct;
+    Protobuf::Struct truncated_struct;
     (*truncated_struct.mutable_fields())["WORKLOAD_NAME"].set_string_value(peer_id);
     if (!principal.empty()) {
       (*truncated_struct.mutable_fields())["PRINCIPAL"].set_string_value(principal);
     }
-    serialized = MessageUtil::hash(truncated_struct);
+    serialized = truncated_struct.SerializeAsString();
   }
 
   const std::string b64 = Envoy::Base64::encode(serialized.c_str(), serialized.size());
